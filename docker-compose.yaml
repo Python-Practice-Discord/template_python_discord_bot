@@ -1,0 +1,42 @@
+services:
+  replaceme:
+    env_file:
+      - local.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DATABASE_URL_ENV: "postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - local
+    ports:
+      - "8000:8000"
+
+  postgres:
+    env_file:
+      - local.env
+    image: postgres:13-alpine
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      PGPORT: "${PGPORT}"
+      POSTGRES_DB: "${PGDATABASE}"
+      POSTGRES_USER: "${PGUSER}"
+      POSTGRES_PASSWORD: "${PGPASSWORD}"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${PGDATABASE}", "-U", "${PGUSER}" ]
+      timeout: 40s
+      interval: 2s
+      retries: 20
+
+    networks:
+      - local
+
+networks:
+  local:
+    driver: bridge

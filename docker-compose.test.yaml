@@ -1,0 +1,4 @@
+services:
+
+  replaceme:
+    command: ["pytest", "tests"]

@@ -1,0 +1,9 @@
+services:
+
+  replaceme:
+    stdin_open: true
+    tty: true
+    command: "/bin/bash"
+    volumes:
+      - .:/opt
+      - /opt/data/postgres
