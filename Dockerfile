@@ -20,7 +20,7 @@ COPY --chown=default:default poetry.lock pyproject.toml ./
 
 ARG NO_DEV="-v"
 
-RUN poetry install --remove-untracked --no-root "$NO_DEV"
+RUN poetry install --remove-untracked "$NO_DEV"
 
 
 FROM base as final

@@ -28,7 +28,7 @@ repos:
         name: mypy
         stages: [ commit ]
         language: system
-        entry: poetry run mypy --namespace-packages tests/ src/
+        entry: poetry run mypy tests/ src/
         types: [ python ]
         require_serial: true
         pass_filenames: false
