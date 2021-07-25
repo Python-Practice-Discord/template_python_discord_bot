@@ -5,11 +5,15 @@ Data will ONLY be collected if you have accepted THIS privacy policy
 
 # Data Collected
 
+## What
 * Discord Username
 * All information around interactions with the bot
-    * Direct calls to this bots commands
-    * Direct messages to this bot
-    * Replies (reactions or text) to messages sent by this bot
+
+
+## When
+* Direct calls to this bots commands
+* Direct messages to this bot
+* Replies (reactions or text) to messages sent by this bot
 
 # Data storage
 
@@ -28,7 +32,7 @@ Who has access to your data:
 * The bot owner
 * The server admins (upon request)
 
-# Data Deleting Request
+# Data Deletion Request
 
 To have all of you data collected by this bot deleted please DM the Team lead. A data deleting
 command may also be available.

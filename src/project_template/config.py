@@ -1,5 +1,9 @@
+import configparser
 import os
 
+
+config_data = configparser.ConfigParser()
+config_data.read("config.ini")
 
 DEBUG = os.environ.get("DEBUG", "true")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
@@ -10,7 +14,9 @@ POSTGRES_DATABASE_URL = os.environ.get(
 SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN_ENV", "fake")
-DISCORD_BOT_COMMAND_PREFIX = os.environ.get("DISCORD_BOT_COMMAND_PREFIX", "/")
+DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["discord_bot_command_prefix"]
+COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
+COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
 
 if SENTRY_URL.lower().strip() != "fake":
     import sentry_sdk
