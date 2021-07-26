@@ -19,8 +19,11 @@ def Session(func):
             try:
                 if isinstance(args[0], AsyncSession):
                     session_passed = True
+
             except IndexError:
                 pass
+            if isinstance(kwargs.get("session"), AsyncSession):
+                session_passed = True
 
             if session_passed is True:
                 func_return = await func(*args, **kwargs)

@@ -1,3 +1,6 @@
+**Version: 1.0**
+
+
 This project collects and stores some private data. The amount of data, how it is stored, and who
 has access to the data is outlined in this document.
 
