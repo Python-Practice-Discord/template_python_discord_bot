@@ -1,8 +1,8 @@
 import importlib
 import os
-from typing import List
 
 from discord.ext import commands
+
 from project_template import config
 from project_template.utils.logger import log
 
@@ -23,7 +23,7 @@ async def close():
     pass
 
 
-def gather_cogs() -> List[commands.cog]:
+def gather_cogs():
     def snake_to_camel_case(snake_str):
         components = snake_str.lower().strip().split("_")
         return "".join(x.capitalize() for x in components)
@@ -57,7 +57,7 @@ def gather_cogs() -> List[commands.cog]:
     return cogs_list
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     for cog in gather_cogs():
         bot.add_cog(cog(bot))
 

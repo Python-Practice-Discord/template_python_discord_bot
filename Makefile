@@ -49,7 +49,7 @@ remove_all_docker_data: kill_all_containers
 ### Commands starting with _ are not to be used in the CLI, but used in other make commands
 
 _build:
-	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID) -q
+	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID)
 
 _down:
 	docker-compose --env-file $(env_file_name) down -v --remove-orphans

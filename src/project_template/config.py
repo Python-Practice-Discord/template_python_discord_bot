@@ -1,6 +1,9 @@
 import configparser
 import os
 
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
 
 config_data = configparser.ConfigParser()
 config_data.read("config.ini")
@@ -9,7 +12,7 @@ DEBUG = os.environ.get("DEBUG", "true")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 POSTGRES_DATABASE_URL = os.environ.get(
     "POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test"
-)
+).replace("://", "+asyncpg://")
 
 SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
 
@@ -28,6 +31,17 @@ if SENTRY_URL.lower().strip() != "fake":
         traces_sample_rate=1.0,
         integrations=[SqlalchemyIntegration()],
     )
+
+engine = create_async_engine(
+    POSTGRES_DATABASE_URL,
+    future=True,
+    echo=True,
+)
+
+async_session = sessionmaker(
+    engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
+)
+
 
 """
 General:
