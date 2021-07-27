@@ -48,6 +48,8 @@ def gather_cogs():
         cogs_mods = os.listdir(f"{current_dir}/cogs")
         cogs_mods.remove("__init__.py")
         for cog_mod in cogs_mods:
+            if "__" in cog_mod:
+                continue
             cog_mod = cog_mod.strip(".py")
             if cog_mod in cogs_to_exclude:
                 continue

@@ -40,5 +40,4 @@ class BotMessages(Base):
     __tablename__ = "bot_messages"
     name = Column(String, unique=True, primary_key=True, nullable=False)
     # tos_version = Column(String, ForeignKey("privacy_terms_of_service.version"), nullable=False)
-    message_id = Column(Integer, nullable=False, unique=True)
-
+    message_id = Column(String, nullable=False, unique=True)

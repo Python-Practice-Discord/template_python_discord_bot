@@ -56,18 +56,12 @@ test
             await put_tos_into_db(session=session, tos=tos, version=version)
 
             tos_db_hash, tos_db_content = (
-                (
-                    await session.execute(
-                        select(
-                            schema.PrivacyTermsOfService.hash,
-                            schema.PrivacyTermsOfService.content
-                        ).filter(
-                            schema.PrivacyTermsOfService.version == version
-                        )
-                    )
+                await session.execute(
+                    select(
+                        schema.PrivacyTermsOfService.hash, schema.PrivacyTermsOfService.content
+                    ).filter(schema.PrivacyTermsOfService.version == version)
                 )
-                    .one_or_none()
-            )
+            ).one_or_none()
             await session.rollback()
             await session.close()
 

@@ -3,21 +3,48 @@ import hashlib
 import re
 from typing import Optional
 
+import arrow
 import discord
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
-import config
-from project_template import schema
+from project_template import config, schema
 from project_template.utils.decorators import Session
 
 
 @Session
 async def get_bot_message_id(session, message_name: str) -> Optional[int]:
     message_id = await session.execute(
-        select(schema.BotMessages.message_id).filter(schema.BotMessages.name == message_name)
+        select(
+            schema.BotMessages.message_id,
+        ).filter(schema.BotMessages.name == message_name)
     )
     message_id = message_id.scalars().one_or_none()
-    return message_id
+    if message_id is None:
+        return message_id
+    return int(message_id)
+
+
+async def get_bot_message_tos_version(bot, message_id) -> Optional[str]:
+    channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
+    try:
+        message_content = (await channel.fetch_message(message_id)).content
+        version = re.findall(
+            "TOS Version[:] ([0-9]{1,10}[.][0-9]{1,10})",
+            message_content,
+            flags=re.M
+        )[0]
+    except (discord.errors.NotFound, IndexError):
+        return None
+    return version
+
+
+@Session
+async def remove_bot_tos_message(session, bot, message_name: str, message_id: int) -> None:
+    channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
+    message = await channel.fetch_message(message_id)
+    await channel.delete_messages([message])
+
+    await session.execute(delete(schema.BotMessages).where(schema.BotMessages.name == message_name))
 
 
 @Session
@@ -43,21 +70,23 @@ async def put_bot_tos_message(session, bot, message_name: str) -> int:
     message = f"""
     Privacy Terms of Service of project_template:
 
-    To accept the please react to the :green_circle:. If you do not want to accept these TOS react to the :red_circle:.
+    To accept the please react to the 🟢. If you do not want to accept these TOS \
+react to the 🔴.
 
-    TOS Link: https://github.com/Python-Practice-Discord/template_python_discord_bot/blob/PeterH/expand_package/PRIVACY.md
+    TOS Link: https://github.com/Python-Practice-Discord/template_python_discord_bot\
+/blob/PeterH/expand_package/PRIVACY.md
+    TOS Version: {version}
     TOS Hash: {current_hash}
+    This post was Updated At: {arrow.utcnow()}
     """
-    channel: discord.TextChannel = bot.get_channel(config.DISCORD_TOS_CHANNEL_ID)
+    channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
     sent_message = await channel.send(message)
-    await sent_message.add_reaction(":green_circle")
-    await sent_message.add_reaction(":red_circle")
-
-    session.add(
-        schema.BotMessages(name=message_name, message_id=sent_message.id)
-    )
+    session.add(schema.BotMessages(name=message_name, message_id=str(sent_message.id)))
     await session.flush()
+    await session.commit()
 
+    await sent_message.add_reaction("🟢")
+    await sent_message.add_reaction("🔴")
     return sent_message.id
 
 
@@ -66,9 +95,7 @@ async def put_tos_into_db(session, tos: str, version: str) -> None:
     current_hash = hashlib.md5(tos.encode("utf-8")).hexdigest()
 
     b64_tos = base64.urlsafe_b64encode(tos.encode("utf-8")).decode("utf-8")
-    session.add(
-        schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=current_hash)
-    )
+    session.add(schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=current_hash))
     await session.flush()
 
 
