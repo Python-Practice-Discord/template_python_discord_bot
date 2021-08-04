@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 
@@ -39,5 +39,4 @@ class BotVersion(Base):
 class BotMessages(Base):
     __tablename__ = "bot_messages"
     name = Column(String, unique=True, primary_key=True, nullable=False)
-    # tos_version = Column(String, ForeignKey("privacy_terms_of_service.version"), nullable=False)
     message_id = Column(String, nullable=False, unique=True)

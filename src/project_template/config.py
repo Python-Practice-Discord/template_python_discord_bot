@@ -17,8 +17,9 @@ POSTGRES_DATABASE_URL = os.environ.get(
 SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN_ENV", "fake")
-DISCORD_TOS_CHANNEL_ID = "1232132183219873128" # TODO get id
-DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["discord_bot_command_prefix"]
+DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["bot_command_prefix"]
+DISCORD_TOS_CHANNEL_ID = None  # Set in main
+DISCORD_BOT_CHANNEL_ID = None  # Set in main
 COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
 COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
 
@@ -42,7 +43,6 @@ engine = create_async_engine(
 async_session = sessionmaker(
     engine, autoflush=False, autocommit=False, class_=AsyncSession, expire_on_commit=False
 )
-
 
 """
 General:

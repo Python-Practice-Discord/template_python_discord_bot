@@ -1,14 +1,18 @@
 import base64
+import datetime
 import hashlib
 import re
+import uuid
 from typing import Optional
 
 import arrow
 import discord
+import sqlalchemy.exc
 from sqlalchemy import delete, select
 
 from project_template import config, schema
 from project_template.utils.decorators import Session
+from project_template.utils.logger import log
 
 
 @Session
@@ -24,14 +28,74 @@ async def get_bot_message_id(session, message_name: str) -> Optional[int]:
     return int(message_id)
 
 
+@Session
+async def add_user_privacy_tos_agreement(session, discord_id: str, tos_version: str) -> None:
+    user_uuid = await get_or_add_user(discord_id)
+    user_agreement = schema.UserPrivacyTOS(user_id=user_uuid, tos_version=tos_version)
+    try:
+        session.add(user_agreement)
+        await session.flush()
+    except sqlalchemy.exc.IntegrityError:
+        log.info("User already agreed to TOS")
+
+
+async def remove_all_user_data(discord_id: str) -> None:
+    await remove_user_privacy_tos_agreement(discord_id)
+    await remove_user(discord_id)
+
+
+@Session
+async def remove_user_privacy_tos_agreement(session, discord_id: str) -> None:
+    user_id = await get_user_uuid(discord_id=discord_id)
+    await session.execute(
+        delete(schema.UserPrivacyTOS).where(schema.UserPrivacyTOS.user_id == user_id)
+    )
+
+
+@Session
+async def remove_user(session, discord_id: str) -> None:
+    await session.execute(delete(schema.User).where(schema.User.discord_id == discord_id))
+
+
+@Session
+async def get_user_uuid(session, discord_id: str) -> Optional[uuid.UUID]:
+    user_id: Optional[uuid.UUID] = (
+        (await session.execute(select(schema.User.id).filter(schema.User.discord_id == discord_id)))
+        .scalars()
+        .one_or_none()
+    )
+    return user_id
+
+
+@Session
+async def get_or_add_user(session, discord_id: str) -> uuid.UUID:
+    user_id = await get_user_uuid(discord_id=discord_id)
+
+    if user_id is not None:
+        return user_id
+    return await add_user(discord_id=discord_id)
+
+
+@Session
+async def add_user(session, discord_id: str) -> uuid.UUID:
+    user = schema.User(
+        discord_id=discord_id,
+        created_at=datetime.datetime.utcnow(),
+        updated_at=datetime.datetime.utcnow(),
+    )
+    session.add(user)
+    await session.flush()
+    return user.id
+
+
 async def get_bot_message_tos_version(bot, message_id) -> Optional[str]:
+    if message_id is None:
+        return None
     channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
     try:
         message_content = (await channel.fetch_message(message_id)).content
         version = re.findall(
-            "TOS Version[:] ([0-9]{1,10}[.][0-9]{1,10})",
-            message_content,
-            flags=re.M
+            "TOS Version[:] ([0-9]{1,10}[.][0-9]{1,10})", message_content, flags=re.M
         )[0]
     except (discord.errors.NotFound, IndexError):
         return None
@@ -61,8 +125,8 @@ async def put_bot_tos_message(session, bot, message_name: str) -> int:
                 )
             )
         )
-            .scalars()
-            .one_or_none()
+        .scalars()
+        .one_or_none()
     )
     if tos_db_hash is None or current_hash != tos_db_hash:
         await put_tos_into_db(session, tos, version)

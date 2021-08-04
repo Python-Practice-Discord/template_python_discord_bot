@@ -1,6 +1,7 @@
 import importlib
 import os
 
+import discord
 from discord.ext import commands
 
 from project_template import config
@@ -12,6 +13,12 @@ bot = commands.Bot(command_prefix=config.DISCORD_BOT_COMMAND_PREFIX)
 
 @bot.event
 async def on_ready():
+    config.DISCORD_TOS_CHANNEL_ID = discord.utils.get(
+        bot.get_all_channels(), name=config.config_data["discord"]["tos_channel_name"]
+    ).id
+    config.DISCORD_BOT_CHANNEL_ID = discord.utils.get(
+        bot.get_all_channels(), name=config.config_data["discord"]["bot_channel_name"]
+    ).id
     log.info("Ready")
     # TODO add sending message, version/updates
     pass
@@ -24,7 +31,7 @@ async def close():
 
 
 def gather_cogs():
-    def snake_to_camel_case(snake_str):
+    def snake_to_camel_case(snake_str: str) -> str:
         components = snake_str.lower().strip().split("_")
         return "".join(x.capitalize() for x in components)
 

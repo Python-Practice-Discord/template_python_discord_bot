@@ -1,15 +1,25 @@
 import discord
 from discord.ext import commands
 
-from project_template.utils.utils import get_tos, get_tos_version, remove_bot_tos_message
-from utils.logger import log
-from utils.utils import get_bot_message_id, get_bot_message_tos_version, put_bot_tos_message
+from project_template import config
+from project_template.utils.logger import log
+from project_template.utils.utils import (
+    add_user_privacy_tos_agreement,
+    get_bot_message_id,
+    get_bot_message_tos_version,
+    get_tos,
+    get_tos_version,
+    put_bot_tos_message,
+    remove_all_user_data,
+    remove_bot_tos_message,
+)
 
 
 class Tos(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._tos_message_id = None
+        self._tos_version = None
 
     @commands.Cog.listener("on_ready")
     async def get_tos_message_id(self):
@@ -19,36 +29,60 @@ class Tos(commands.Cog):
         message_tos_version = await get_bot_message_tos_version(self.bot, self._tos_message_id)
 
         tos = get_tos()
-        current_tos_version = get_tos_version(tos)
+        self._tos_version = get_tos_version(tos)
 
-        if message_tos_version != current_tos_version:
+        await self._sync_reactions()
+
+        if message_tos_version != self._tos_version and self._tos_message_id is not None:
             await remove_bot_tos_message(
-                self.bot,
-                "project_template_tos",
-                int(self._tos_message_id)
+                self.bot, "project_template_tos", int(self._tos_message_id)
             )
             self._tos_message_id = None
-            # TODO remove users consent when the post is updated. Optional?
 
         if self._tos_message_id is None:
             self._tos_message_id: int = await put_bot_tos_message(self.bot, "project_template_tos")
 
+    async def _sync_reactions(self):
+        """
+        Makes sure all reactions since the bot was last turned on have been synced.
+        """
+        # TODO remove users who removed their consent.
+
+        channel: discord.TextChannel = self.bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
+        message = await channel.fetch_message(self._tos_message_id)
+        reactions = message.reactions
+        for reaction in reactions:
+            if reaction.emoji != "🟢":
+                continue
+            async for user in reaction.users():
+                if user.id == self.bot.user.id:
+                    continue
+                await add_user_privacy_tos_agreement(str(user.id), self._tos_version)
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        log.info("on reaction add")
-        if payload.message_id != self._tos_message_id:
+        log.info("TOS on reaction add")
+        if payload.message_id != self._tos_message_id or payload.user_id == self.bot.user.id:
             return
 
-        reaction = payload.emoji.id
-        # TODO get tos version
-        # TODO make sure it is not a bot reaction
+        reaction = payload.emoji.name
 
         if reaction == "🟢":
             user_that_reacted = payload.user_id
-
+            await add_user_privacy_tos_agreement(str(user_that_reacted), self._tos_version)
         elif reaction == "🔴":
             return
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        pass
+        log.info("TOS on reaction remove")
+        if payload.message_id != self._tos_message_id or payload.user_id == self.bot.user.id:
+            return
+
+        reaction = payload.emoji.name
+
+        if reaction == "🟢":
+            user_that_reacted = payload.user_id
+            await remove_all_user_data(str(user_that_reacted))
+        elif reaction == "🔴":
+            return
