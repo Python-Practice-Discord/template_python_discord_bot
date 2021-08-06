@@ -18,8 +18,8 @@ SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
 
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN_ENV", "fake")
 DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["bot_command_prefix"]
-DISCORD_TOS_CHANNEL_ID = None  # Set in main
-DISCORD_BOT_CHANNEL_ID = None  # Set in main
+DISCORD_TOS_CHANNEL_ID: str = ""  # Set in main
+DISCORD_BOT_CHANNEL_ID: str = ""  # Set in main
 COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
 COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
 

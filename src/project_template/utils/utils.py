@@ -3,7 +3,7 @@ import datetime
 import hashlib
 import re
 import uuid
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import arrow
 import discord
@@ -26,6 +26,14 @@ async def get_bot_message_id(session, message_name: str) -> Optional[int]:
     if message_id is None:
         return message_id
     return int(message_id)
+
+
+@Session
+async def remove_non_consenting_users(session, current_consent_discord_ids: List[str]):
+    discord_ids = (await session.execute(select(schema.User.discord_id))).scalars()
+    for user_id in discord_ids:
+        if str(user_id) not in current_consent_discord_ids:
+            await remove_all_user_data(user_id)
 
 
 @Session
@@ -88,18 +96,21 @@ async def add_user(session, discord_id: str) -> uuid.UUID:
     return user.id
 
 
-async def get_bot_message_tos_version(bot, message_id) -> Optional[str]:
+async def get_bot_message_tos_version_and_hash(
+    bot, message_id
+) -> Tuple[Optional[str], Optional[str]]:
     if message_id is None:
-        return None
+        return None, None
     channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
     try:
         message_content = (await channel.fetch_message(message_id)).content
         version = re.findall(
             "TOS Version[:] ([0-9]{1,10}[.][0-9]{1,10})", message_content, flags=re.M
-        )[0]
+        )[0].strip()
+        hash_ = re.findall("TOS Hash[:] (.*)$", message_content, flags=re.M)[0].strip()
     except (discord.errors.NotFound, IndexError):
-        return None
-    return version
+        return None, None
+    return version, hash_
 
 
 @Session
@@ -114,8 +125,7 @@ async def remove_bot_tos_message(session, bot, message_name: str, message_id: in
 @Session
 async def put_bot_tos_message(session, bot, message_name: str) -> int:
     tos: str = get_tos()
-    version = get_tos_version(tos)
-    current_hash = hashlib.md5(tos.encode("utf-8")).hexdigest()
+    version, hash_ = get_tos_version_and_hash(tos)
 
     tos_db_hash = (
         (
@@ -128,8 +138,10 @@ async def put_bot_tos_message(session, bot, message_name: str) -> int:
         .scalars()
         .one_or_none()
     )
-    if tos_db_hash is None or current_hash != tos_db_hash:
-        await put_tos_into_db(session, tos, version)
+    # TODO do we want this to fail if something is changed but the version is not bumped?
+    # TODO if a version is changed ALL USER DATA WILL BE DELETED! Do we want this?
+    if tos_db_hash is None or hash_ != tos_db_hash:
+        await put_tos_into_db(session, tos, version, hash_)
 
     message = f"""
     Privacy Terms of Service of project_template:
@@ -140,7 +152,7 @@ react to the 🔴.
     TOS Link: https://github.com/Python-Practice-Discord/template_python_discord_bot\
 /blob/PeterH/expand_package/PRIVACY.md
     TOS Version: {version}
-    TOS Hash: {current_hash}
+    TOS Hash: {hash_}
     This post was Updated At: {arrow.utcnow()}
     """
     channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
@@ -155,11 +167,10 @@ react to the 🔴.
 
 
 @Session
-async def put_tos_into_db(session, tos: str, version: str) -> None:
-    current_hash = hashlib.md5(tos.encode("utf-8")).hexdigest()
+async def put_tos_into_db(session, tos: str, version: str, hash_: str) -> None:
 
     b64_tos = base64.urlsafe_b64encode(tos.encode("utf-8")).decode("utf-8")
-    session.add(schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=current_hash))
+    session.add(schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=hash_))
     await session.flush()
 
 
@@ -169,6 +180,7 @@ def get_tos() -> str:
     return data
 
 
-def get_tos_version(tos: str) -> str:
+def get_tos_version_and_hash(tos: str) -> Tuple[str, str]:
     version = re.findall("^[*]{2}Version[:] ([0-9]{1,10}[.][0-9]{1,10})[*]{2}$", tos, flags=re.M)[0]
-    return str(version)
+    hash_ = hashlib.md5(tos.encode("utf-8")).hexdigest()
+    return str(version), hash_

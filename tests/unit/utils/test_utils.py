@@ -5,7 +5,11 @@ from sqlalchemy import select
 
 from project_template import schema
 from project_template.config import async_session
-from project_template.utils.utils import get_bot_message_id, get_tos_version, put_tos_into_db
+from project_template.utils.utils import (
+    get_bot_message_id,
+    get_tos_version_and_hash,
+    put_tos_into_db,
+)
 
 
 async def _test_get_bot_message_id():
@@ -36,7 +40,7 @@ def test_none_bot_message_id(main_loop):
 
 
 def test_get_tos_version():
-    version = get_tos_version(
+    version, hash_ = get_tos_version_and_hash(
         """
 **Version: 2.11**
 test
@@ -50,10 +54,10 @@ async def _test_put_tos_into_db_does_not_exist():
 **Version: 2.11**
 test
     """
-    version = get_tos_version(tos)
+    version, hash_ = get_tos_version_and_hash(tos)
     async with async_session() as session:
         async with session.begin():
-            await put_tos_into_db(session=session, tos=tos, version=version)
+            await put_tos_into_db(session=session, tos=tos, version=version, hash_=hash_)
 
             tos_db_hash, tos_db_content = (
                 await session.execute(
