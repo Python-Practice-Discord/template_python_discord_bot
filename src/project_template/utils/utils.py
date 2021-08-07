@@ -9,6 +9,7 @@ import arrow
 import discord
 import sqlalchemy.exc
 from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from project_template import config, schema
 from project_template.utils.decorators import Session
@@ -16,20 +17,27 @@ from project_template.utils.logger import log
 
 
 @Session
-async def get_bot_message_id(session, message_name: str) -> Optional[int]:
-    message_id = await session.execute(
-        select(
-            schema.BotMessages.message_id,
-        ).filter(schema.BotMessages.name == message_name)
+async def get_bot_message_id(session: AsyncSession, message_name: str) -> Optional[int]:
+    message_id = (
+        (
+            await session.execute(
+                select(
+                    schema.BotMessages.message_id,
+                ).filter(schema.BotMessages.name == message_name)
+            )
+        )
+        .scalars()
+        .one_or_none()
     )
-    message_id = message_id.scalars().one_or_none()
     if message_id is None:
         return message_id
     return int(message_id)
 
 
 @Session
-async def remove_non_consenting_users(session, current_consent_discord_ids: List[str]):
+async def remove_non_consenting_users(
+    session: AsyncSession, current_consent_discord_ids: List[str]
+):
     discord_ids = (await session.execute(select(schema.User.discord_id))).scalars()
     for user_id in discord_ids:
         if str(user_id) not in current_consent_discord_ids:
@@ -37,7 +45,9 @@ async def remove_non_consenting_users(session, current_consent_discord_ids: List
 
 
 @Session
-async def add_user_privacy_tos_agreement(session, discord_id: str, tos_version: str) -> None:
+async def add_user_privacy_tos_agreement(
+    session: AsyncSession, discord_id: str, tos_version: str
+) -> None:
     user_uuid = await get_or_add_user(discord_id)
     user_agreement = schema.UserPrivacyTOS(user_id=user_uuid, tos_version=tos_version)
     try:
@@ -47,13 +57,14 @@ async def add_user_privacy_tos_agreement(session, discord_id: str, tos_version: 
         log.info("User already agreed to TOS")
 
 
-async def remove_all_user_data(discord_id: str) -> None:
-    await remove_user_privacy_tos_agreement(discord_id)
-    await remove_user(discord_id)
+@Session
+async def remove_all_user_data(session: AsyncSession, discord_id: str) -> None:
+    await remove_user_privacy_tos_agreement(session=session, discord_id=discord_id)
+    await remove_user(session=session, discord_id=discord_id)
 
 
 @Session
-async def remove_user_privacy_tos_agreement(session, discord_id: str) -> None:
+async def remove_user_privacy_tos_agreement(session: AsyncSession, discord_id: str) -> None:
     user_id = await get_user_uuid(discord_id=discord_id)
     await session.execute(
         delete(schema.UserPrivacyTOS).where(schema.UserPrivacyTOS.user_id == user_id)
@@ -61,12 +72,12 @@ async def remove_user_privacy_tos_agreement(session, discord_id: str) -> None:
 
 
 @Session
-async def remove_user(session, discord_id: str) -> None:
+async def remove_user(session: AsyncSession, discord_id: str) -> None:
     await session.execute(delete(schema.User).where(schema.User.discord_id == discord_id))
 
 
 @Session
-async def get_user_uuid(session, discord_id: str) -> Optional[uuid.UUID]:
+async def get_user_uuid(session: AsyncSession, discord_id: str) -> Optional[uuid.UUID]:
     user_id: Optional[uuid.UUID] = (
         (await session.execute(select(schema.User.id).filter(schema.User.discord_id == discord_id)))
         .scalars()
@@ -75,8 +86,8 @@ async def get_user_uuid(session, discord_id: str) -> Optional[uuid.UUID]:
     return user_id
 
 
-@Session
-async def get_or_add_user(session, discord_id: str) -> uuid.UUID:
+
+async def get_or_add_user(discord_id: str) -> uuid.UUID:
     user_id = await get_user_uuid(discord_id=discord_id)
 
     if user_id is not None:
@@ -85,7 +96,7 @@ async def get_or_add_user(session, discord_id: str) -> uuid.UUID:
 
 
 @Session
-async def add_user(session, discord_id: str) -> uuid.UUID:
+async def add_user(session: AsyncSession, discord_id: str) -> uuid.UUID:
     user = schema.User(
         discord_id=discord_id,
         created_at=datetime.datetime.utcnow(),
@@ -114,7 +125,9 @@ async def get_bot_message_tos_version_and_hash(
 
 
 @Session
-async def remove_bot_tos_message(session, bot, message_name: str, message_id: int) -> None:
+async def remove_bot_tos_message(
+    session: AsyncSession, bot, message_name: str, message_id: int
+) -> None:
     channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
     message = await channel.fetch_message(message_id)
     await channel.delete_messages([message])
@@ -123,7 +136,7 @@ async def remove_bot_tos_message(session, bot, message_name: str, message_id: in
 
 
 @Session
-async def put_bot_tos_message(session, bot, message_name: str) -> int:
+async def put_bot_tos_message(session: AsyncSession, bot, message_name: str) -> int:
     tos: str = get_tos()
     version, hash_ = get_tos_version_and_hash(tos)
 
@@ -167,8 +180,7 @@ react to the 🔴.
 
 
 @Session
-async def put_tos_into_db(session, tos: str, version: str, hash_: str) -> None:
-
+async def put_tos_into_db(session: AsyncSession, tos: str, version: str, hash_: str) -> None:
     b64_tos = base64.urlsafe_b64encode(tos.encode("utf-8")).decode("utf-8")
     session.add(schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=hash_))
     await session.flush()

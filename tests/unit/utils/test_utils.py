@@ -12,10 +12,13 @@ from project_template.utils.utils import (
 )
 
 
+# TODO test deleting all data from DB.
+
+
 async def _test_get_bot_message_id():
     async with async_session() as session:
         async with session.begin():
-            session.add(schema.BotMessages(name="test", message_id=100))
+            session.add(schema.BotMessages(name="test", message_id="100"))
             await session.flush()
 
             message_id = await get_bot_message_id(session=session, message_name="test")
@@ -47,6 +50,7 @@ test
     """
     )
     assert version == "2.11"
+    assert hash_ == "8a0172dbe7acc3acad1ace83549cb67f"
 
 
 async def _test_put_tos_into_db_does_not_exist():
