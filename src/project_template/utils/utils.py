@@ -86,7 +86,6 @@ async def get_user_uuid(session: AsyncSession, discord_id: str) -> Optional[uuid
     return user_id
 
 
-
 async def get_or_add_user(discord_id: str) -> uuid.UUID:
     user_id = await get_user_uuid(discord_id=discord_id)
 

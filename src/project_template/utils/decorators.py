@@ -15,6 +15,10 @@ def Session(func):
     """
     Decorator that adds a SQLalchemy AsyncSession to the function passed if the function is not
     already being passed an AsyncSession object.
+
+    If no AsyncSession object is being passes this decorator will handle all session commit and
+    rollback operations. Commit if no errors, rollback if there is an error raised.
+
     Example:
 
     @Session
@@ -28,6 +32,7 @@ def Session(func):
     NOTE: The FIRST argument is "session". "session" in ANY OTHER ARGUMENT SPOT will break!
     ONLY pass an AsyncSession object or NOTHING to the "session" argument!
     """
+
     @functools.wraps(func)
     async def wrapper_events(*args, **kwargs):
         func_mod_and_name = f"{func.__module__}.{func.__name__}"
@@ -73,6 +78,5 @@ async def _test(session, other, something=False):
 
 
 if __name__ == "__main__":
-
     loop = asyncio.get_event_loop()
     loop.run_until_complete(call_())
