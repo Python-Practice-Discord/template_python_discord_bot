@@ -4,17 +4,19 @@ import discord
 from discord.ext import commands
 
 from project_template import config
-from project_template.utils.logger import log
-from project_template.utils.utils import (
+from project_template.utils.database import (
     add_user_privacy_tos_agreement,
     get_bot_message_id,
-    get_bot_message_tos_version_and_hash,
-    get_tos,
-    get_tos_version_and_hash,
     put_bot_tos_message,
     remove_all_user_data,
     remove_bot_tos_message,
     remove_non_consenting_users,
+)
+from project_template.utils.logger import log
+from project_template.utils.utils import (
+    get_bot_message_tos_version_and_hash,
+    get_tos,
+    get_tos_version_and_hash,
 )
 
 
@@ -27,7 +29,7 @@ class Tos(commands.Cog):
 
     @commands.Cog.listener("on_ready")
     async def get_tos_message_id(self):
-        # TODO when the TOS version is changed all user data WILL BE DELETED!
+        # WARNING! when the TOS version is changed all user data WILL BE DELETED!
         log.info("Getting tos_message_id")
 
         self._tos_message_id = await get_bot_message_id("project_template_tos")

@@ -5,6 +5,19 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 
+VERSION = ("0.1.0",)  # TODO automate getting this.
+SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
+if SENTRY_URL.lower().strip() != "fake":
+    import sentry_sdk
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+    sentry_sdk.init(
+        SENTRY_URL,
+        release=VERSION,
+        traces_sample_rate=1.0,
+        integrations=[SqlalchemyIntegration()],
+    )
+
 config_data = configparser.ConfigParser()
 config_data.read("config.ini")
 
@@ -14,25 +27,13 @@ POSTGRES_DATABASE_URL = os.environ.get(
     "POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test"
 ).replace("://", "+asyncpg://")
 
-SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
-
+BOT_NAME = config_data["discord"]["bot_name"]
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN_ENV", "fake")
 DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["bot_command_prefix"]
-DISCORD_TOS_CHANNEL_ID: str = ""  # Set in main
-DISCORD_BOT_CHANNEL_ID: str = ""  # Set in main
+DISCORD_TOS_CHANNEL_ID: str = ""  # This is set in main.py
+DISCORD_BOT_CHANNEL_ID: str = ""  # This is set in main.py
 COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
 COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
-
-if SENTRY_URL.lower().strip() != "fake":
-    import sentry_sdk
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-
-    sentry_sdk.init(
-        SENTRY_URL,
-        release="0.1.0",  # TODO automate getting this.
-        traces_sample_rate=1.0,
-        integrations=[SqlalchemyIntegration()],
-    )
 
 engine = create_async_engine(
     POSTGRES_DATABASE_URL,

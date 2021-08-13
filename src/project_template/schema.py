@@ -36,7 +36,7 @@ class BotVersion(Base):
     notification_sent = Column(Boolean, nullable=False)
 
 
-class BotMessages(Base):
-    __tablename__ = "bot_messages"
+class BotMessage(Base):
+    __tablename__ = "bot_message"
     name = Column(String, unique=True, primary_key=True, nullable=False)
     message_id = Column(String, nullable=False, unique=True)

@@ -1,4 +1,3 @@
-import asyncio
 import functools
 import inspect
 
@@ -13,7 +12,7 @@ __all__ = ["Session"]
 
 def Session(func):
     """
-    Decorator that adds a SQLalchemy AsyncSession to the function passed if the function is not
+    Decorator that adds a SQLAlchemy AsyncSession to the function passed if the function is not
     already being passed an AsyncSession object.
 
     If no AsyncSession object is being passes this decorator will handle all session commit and
@@ -68,15 +67,4 @@ def Session(func):
     return wrapper_events
 
 
-async def call_():
-    await _test("other", "something")
-
-
-@Session
-async def _test(session, other, something=False):
-    pass
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(call_())
+# TODO add decorator to ignore user that has not agreed to TOS
