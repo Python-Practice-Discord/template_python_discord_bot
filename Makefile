@@ -18,7 +18,7 @@ run: _base
 interactive: _base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.interactive.yaml run --rm replaceme
 
-test: _base
+test: initialize_pg _base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.test.yaml run --rm replaceme
 
 # Just starts the postgres DB.
