@@ -3,7 +3,6 @@ import datetime
 import hashlib
 import uuid
 
-import arrow
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from project_template import schema
@@ -24,13 +23,13 @@ async def add_bot_data(session: AsyncSession):
     )
     session.add(tos)
 
-    bot_message = f"""
-    TEST
-
-    TOS Version: {tos_version}
-    TOS Hash: {tos_hash}
-    This post was Updated At: {arrow.utcnow()}
-    """
+    # bot_message = f"""
+    # TEST
+    #
+    # TOS Version: {tos_version}
+    # TOS Hash: {tos_hash}
+    # This post was Updated At: {arrow.utcnow()}
+    # """
 
     message = schema.BotMessage(name="project_template_tos", message_id="1234")
     session.add(message)

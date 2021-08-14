@@ -29,7 +29,6 @@ async def on_ready():
         bot.get_all_channels(), name=config.config_data["discord"]["bot_channel_name"]
     ).id
     log.debug(f"Set DISCORD_BOT_CHANNEL_ID to {config.DISCORD_BOT_CHANNEL_ID}")
-    # TODO add sending message, version/updates
 
     message = f"""
 {config.BOT_NAME} is starting. Version {config.VERSION}
@@ -42,8 +41,11 @@ async def on_ready():
 async def close():
     log.info("Main on close")
 
-    # TODO send message on closing
-    pass
+    message = f"""
+{config.BOT_NAME} is shutting down.
+        """
+    channel: discord.TextChannel = bot.get_channel(int(config.DISCORD_BOT_CHANNEL_ID))
+    await channel.send(message)
 
 
 def gather_cogs():

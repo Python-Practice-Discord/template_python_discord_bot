@@ -62,47 +62,6 @@ async def remove_all_user_data(session: AsyncSession, discord_id: str) -> None:
     await remove_user(session=session, discord_id=discord_id)
 
 
-async def remove_user_privacy_tos_agreement(session: AsyncSession, discord_id: str) -> None:
-    user_id = await get_user_uuid(session=session, discord_id=discord_id)
-    await session.execute(
-        delete(schema.UserPrivacyTOS).where(schema.UserPrivacyTOS.user_id == user_id)
-    )
-    await session.flush()
-
-
-async def remove_user(session: AsyncSession, discord_id: str) -> None:
-    await session.execute(delete(schema.User).where(schema.User.discord_id == discord_id))
-    await session.flush()
-
-
-async def get_user_uuid(session: AsyncSession, discord_id: str) -> Optional[uuid.UUID]:
-    user_id: Optional[uuid.UUID] = (
-        (await session.execute(select(schema.User.id).filter(schema.User.discord_id == discord_id)))
-        .scalars()
-        .one_or_none()
-    )
-    return user_id
-
-
-async def get_or_add_user(session, discord_id: str) -> uuid.UUID:
-    user_id = await get_user_uuid(session=session, discord_id=discord_id)
-
-    if user_id is not None:
-        return user_id
-    return await add_user(session=session, discord_id=discord_id)
-
-
-async def add_user(session: AsyncSession, discord_id: str) -> uuid.UUID:
-    user = schema.User(
-        discord_id=discord_id,
-        created_at=datetime.datetime.utcnow(),
-        updated_at=datetime.datetime.utcnow(),
-    )
-    session.add(user)
-    await session.flush()
-    return user.id
-
-
 @Session
 async def remove_bot_tos_message(
     session: AsyncSession, bot, message_name: str, message_id: int
@@ -156,6 +115,47 @@ react to the 🔴.
     await sent_message.add_reaction("🟢")
     await sent_message.add_reaction("🔴")
     return sent_message.id
+
+
+async def remove_user_privacy_tos_agreement(session: AsyncSession, discord_id: str) -> None:
+    user_id = await get_user_uuid(session=session, discord_id=discord_id)
+    await session.execute(
+        delete(schema.UserPrivacyTOS).where(schema.UserPrivacyTOS.user_id == user_id)
+    )
+    await session.flush()
+
+
+async def remove_user(session: AsyncSession, discord_id: str) -> None:
+    await session.execute(delete(schema.User).where(schema.User.discord_id == discord_id))
+    await session.flush()
+
+
+async def get_user_uuid(session: AsyncSession, discord_id: str) -> Optional[uuid.UUID]:
+    user_id: Optional[uuid.UUID] = (
+        (await session.execute(select(schema.User.id).filter(schema.User.discord_id == discord_id)))
+        .scalars()
+        .one_or_none()
+    )
+    return user_id
+
+
+async def get_or_add_user(session, discord_id: str) -> uuid.UUID:
+    user_id = await get_user_uuid(session=session, discord_id=discord_id)
+
+    if user_id is not None:
+        return user_id
+    return await add_user(session=session, discord_id=discord_id)
+
+
+async def add_user(session: AsyncSession, discord_id: str) -> uuid.UUID:
+    user = schema.User(
+        discord_id=discord_id,
+        created_at=datetime.datetime.utcnow(),
+        updated_at=datetime.datetime.utcnow(),
+    )
+    session.add(user)
+    await session.flush()
+    return user.id
 
 
 async def put_tos_into_db(session: AsyncSession, tos: str, version: str, hash_: str) -> None:
