@@ -1,13 +1,18 @@
 import functools
 import inspect
+from typing import Optional
 
+from packaging import version
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from project_template.config import async_session
+from project_template.utils.exceptions import UserHasNotAcceptedTOS
 from project_template.utils.logger import log
+from project_template.utils import utils
 
+__all__ = ["Session", "TOS"]
 
-__all__ = ["Session"]
+from utils.database import get_user_tos_version
 
 
 def Session(func):
@@ -66,5 +71,31 @@ def Session(func):
 
     return wrapper_events
 
+
+def TOS(min_tos_version: Optional[str] = None):
+    def _decorator(func):
+        @functools.wraps(func)
+        async def wrapper_events(*args, **kwargs):
+            if min_tos_version is not None:
+                # TODO get user discord id from args/kwargs
+                user_discord_id = ""
+                user_accepted_tos_version = await get_user_tos_version(user_discord_id)
+
+                if user_accepted_tos_version is None:
+                    raise UserHasNotAcceptedTOS("User has not accepted the TOS")
+
+                user_version = version.parse(user_accepted_tos_version)
+                min_version = version.parse(min_tos_version)
+
+                if min_version > user_version:
+                    raise UserHasNotAcceptedTOS(
+                        f"Min TOS version accepted {min_version} is less "
+                        f"than the current TOS version {user_version}"
+                    )
+            return await func(*args, **kwargs)
+
+        return wrapper_events
+
+    return _decorator
 
 # TODO add decorator to ignore user that has not agreed to TOS

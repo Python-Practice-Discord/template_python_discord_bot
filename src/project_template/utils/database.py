@@ -25,8 +25,8 @@ async def get_bot_message_id(session: AsyncSession, message_name: str) -> Option
                 ).filter(schema.BotMessage.name == message_name)
             )
         )
-        .scalars()
-        .one_or_none()
+            .scalars()
+            .one_or_none()
     )
     if message_id is None:
         return message_id
@@ -86,8 +86,8 @@ async def put_bot_tos_message(session: AsyncSession, bot, message_name: str) -> 
                 )
             )
         )
-        .scalars()
-        .one_or_none()
+            .scalars()
+            .one_or_none()
     )
     # TODO do we want this to fail if something is changed but the version is not bumped?
     # TODO if a version is changed ALL USER DATA WILL BE DELETED! Do we want this?
@@ -117,6 +117,17 @@ react to the 🔴.
     return sent_message.id
 
 
+@Session
+async def get_user_tos_version(session: AsyncSession, discord_id: str) -> Optional[str]:
+    query = (
+        select(schema.UserPrivacyTOS.tos_version)
+            .join(schema.User.id == schema.UserPrivacyTOS.id)
+            .filter(schema.User.discord_id == discord_id)
+    )
+    accepted_tos_version = (await session.execute(query)).scalars().one_or_none()
+    return accepted_tos_version
+
+
 async def remove_user_privacy_tos_agreement(session: AsyncSession, discord_id: str) -> None:
     user_id = await get_user_uuid(session=session, discord_id=discord_id)
     await session.execute(
@@ -133,8 +144,8 @@ async def remove_user(session: AsyncSession, discord_id: str) -> None:
 async def get_user_uuid(session: AsyncSession, discord_id: str) -> Optional[uuid.UUID]:
     user_id: Optional[uuid.UUID] = (
         (await session.execute(select(schema.User.id).filter(schema.User.discord_id == discord_id)))
-        .scalars()
-        .one_or_none()
+            .scalars()
+            .one_or_none()
     )
     return user_id
 

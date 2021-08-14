@@ -7,6 +7,7 @@ import discord
 from project_template import config
 
 
+# TODO speed this up. Cache the results
 def get_tos_version_and_hash(tos: str) -> Tuple[str, str]:
     version = re.findall("^[*]{2}Version[:] ([0-9]{1,10}[.][0-9]{1,10})[*]{2}$", tos, flags=re.M)[0]
     hash_ = hashlib.md5(tos.encode("utf-8")).hexdigest()
@@ -30,6 +31,7 @@ async def get_bot_message_tos_version_and_hash(
     return version, hash_
 
 
+# TODO Cache this.
 def get_tos() -> str:
     with open("./PRIVACY.md", "r") as f:
         data = f.read()

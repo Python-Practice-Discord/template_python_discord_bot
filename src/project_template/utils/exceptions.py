@@ -1,0 +1,2 @@
+class UserHasNotAcceptedTOS(Exception):
+    pass

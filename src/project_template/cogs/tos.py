@@ -55,8 +55,6 @@ class Tos(commands.Cog):
         """
         Makes sure all reactions since the bot was last turned on have been synced.
         """
-        # TODO remove users who removed their consent.
-
         channel: discord.TextChannel = self.bot.get_channel(int(config.DISCORD_TOS_CHANNEL_ID))
         message = await channel.fetch_message(self._tos_message_id)
         reactions = message.reactions
