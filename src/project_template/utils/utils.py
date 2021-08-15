@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import re
 from typing import Optional, Tuple
@@ -14,6 +15,7 @@ def get_tos_version_and_hash(tos: str) -> Tuple[str, str]:
     return str(version), hash_
 
 
+# TODO write test
 async def get_bot_message_tos_version_and_hash(
     bot, message_id
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -23,8 +25,10 @@ async def get_bot_message_tos_version_and_hash(
     try:
         message_content = (await channel.fetch_message(message_id)).content
         version = re.findall(
-            "TOS Version[:] ([0-9]{1,10}[.][0-9]{1,10})", message_content, flags=re.M
-        )[0].strip()
+            r"^([*]{,2})Version[:]\s*([0-9]{1,10}[.][0-9]{1,10})\1\s*$",
+            message_content,
+            flags=re.M | re.I,
+        )[0][1].strip()
         hash_ = re.findall("TOS Hash[:] (.*)$", message_content, flags=re.M)[0].strip()
     except (discord.errors.NotFound, IndexError):
         return None, None
@@ -36,3 +40,7 @@ def get_tos() -> str:
     with open("./PRIVACY.md", "r") as f:
         data = f.read()
     return data
+
+
+def encode_string_for_db(data: str) -> str:
+    return base64.urlsafe_b64encode(data.encode("utf-8")).decode("utf-8")

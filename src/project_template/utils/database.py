@@ -1,4 +1,3 @@
-import base64
 import datetime
 import uuid
 from typing import List, Optional
@@ -12,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from project_template import config, schema
 from project_template.utils.decorators import Session
 from project_template.utils.logger import log
-from project_template.utils.utils import get_tos, get_tos_version_and_hash
+from project_template.utils.utils import encode_string_for_db, get_tos, get_tos_version_and_hash
 
 
 @Session
@@ -97,11 +96,9 @@ async def put_bot_tos_message(session: AsyncSession, bot, message_name: str) -> 
     message = f"""
     Privacy Terms of Service of project_template:
 
-    To accept the please react to the 🟢. If you do not want to accept these TOS \
-react to the 🔴.
+    To accept the please react to the 🟢.
 
-    TOS Link: https://github.com/Python-Practice-Discord/template_python_discord_bot\
-/blob/PeterH/expand_package/PRIVACY.md
+    TOS Link: {config.GIT_REPO_PRIVACY_URL}
     TOS Version: {version}
     TOS Hash: {hash_}
     This post was Updated At: {arrow.utcnow()}
@@ -113,7 +110,6 @@ react to the 🔴.
     await session.commit()
 
     await sent_message.add_reaction("🟢")
-    await sent_message.add_reaction("🔴")
     return sent_message.id
 
 
@@ -170,6 +166,6 @@ async def add_user(session: AsyncSession, discord_id: str) -> uuid.UUID:
 
 
 async def put_tos_into_db(session: AsyncSession, tos: str, version: str, hash_: str) -> None:
-    b64_tos = base64.urlsafe_b64encode(tos.encode("utf-8")).decode("utf-8")
+    b64_tos = encode_string_for_db(tos)
     session.add(schema.PrivacyTermsOfService(version=version, content=b64_tos, hash=hash_))
     await session.flush()

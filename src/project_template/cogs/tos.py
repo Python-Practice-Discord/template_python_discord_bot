@@ -70,8 +70,8 @@ class Tos(commands.Cog):
                 current_consent_discord_ids.append(str(user.id))
         await remove_non_consenting_users(current_consent_discord_ids)
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    @commands.Cog.listener("on_raw_reaction_add")
+    async def user_tos_agreement_on_reaction_add(self, payload: discord.RawReactionActionEvent):
         log.info("TOS on reaction add")
         if payload.message_id != self._tos_message_id or payload.user_id == self.bot.user.id:
             return
@@ -81,11 +81,9 @@ class Tos(commands.Cog):
         if reaction == "🟢":
             user_that_reacted = payload.user_id
             await add_user_privacy_tos_agreement(str(user_that_reacted), self._tos_version)
-        elif reaction == "🔴":
-            return
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+    @commands.Cog.listener("on_raw_reaction_remove")
+    async def user_tos_agreement_on_reaction_remove(self, payload: discord.RawReactionActionEvent):
         log.info("TOS on reaction remove")
         if payload.message_id != self._tos_message_id or payload.user_id == self.bot.user.id:
             return
@@ -95,5 +93,3 @@ class Tos(commands.Cog):
         if reaction == "🟢":
             user_that_reacted = payload.user_id
             await remove_all_user_data(str(user_that_reacted))
-        elif reaction == "🔴":
-            return

@@ -23,17 +23,23 @@ config_data.read("config.ini")
 
 DEBUG = os.environ.get("DEBUG", "true")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
+
 POSTGRES_DATABASE_URL = os.environ.get(
     "POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test"
-).replace("://", "+asyncpg://")
+)
+if "asyncpg" not in POSTGRES_DATABASE_URL:
+    POSTGRES_DATABASE_URL = POSTGRES_DATABASE_URL.replace("://", "+asyncpg://")
 
 BOT_NAME = config_data["discord"]["bot_name"]
-DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN_ENV", "fake")
+DISCORD_TOKEN = os.environ["DISCORD_TOKEN_ENV"]
 DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["bot_command_prefix"]
 DISCORD_TOS_CHANNEL_ID: str = ""  # This is set in main.py
 DISCORD_BOT_CHANNEL_ID: str = ""  # This is set in main.py
 COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
 COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
+
+GIT_REPO_URL = config_data["git"]["repo_url"]
+GIT_REPO_PRIVACY_URL = f"{GIT_REPO_URL}/{config_data['git']['privacy_location']}"
 
 engine = create_async_engine(
     POSTGRES_DATABASE_URL,

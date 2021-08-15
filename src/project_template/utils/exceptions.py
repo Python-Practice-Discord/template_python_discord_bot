@@ -1,2 +1,6 @@
-class UserHasNotAcceptedTOS(Exception):
+class ProjectTemplateExceptionBase(Exception):
+    pass
+
+
+class UserHasNotAcceptedTOS(ProjectTemplateExceptionBase):
     pass

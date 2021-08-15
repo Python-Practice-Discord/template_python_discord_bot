@@ -17,7 +17,7 @@ class Example(commands.Cog):
     def _to_upper(timezone: str):
         return timezone.strip().upper()
 
-    @commands.command()
+    @commands.command(name="current_time")
     @TOS(min_tos_version="1.0")
     async def current_time(self, ctx: commands.Context, *, timezone: str):
         log.info(f"Getting current time in timezone: {timezone}")

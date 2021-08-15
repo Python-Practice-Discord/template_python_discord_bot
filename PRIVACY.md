@@ -17,6 +17,7 @@ Data will ONLY be collected if you have accepted THIS privacy policy
 * Direct calls to this bots commands
 * Direct messages to this bot
 * Replies (reactions or text) to messages sent by this bot
+* You are mentioned in another message
 
 # Data storage
 
@@ -37,5 +38,5 @@ Who has access to your data:
 
 # Data Deletion Request
 
-To have all of you data collected by this bot deleted please DM the Team lead. A data deleting
+To have all of your data collected by this bot deleted please DM the Team lead. A data deleting
 command may also be available.

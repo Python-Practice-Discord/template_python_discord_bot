@@ -59,11 +59,19 @@ def gather_cogs():
         else:
             log.info(f"Attempting to load cog {_cog_mod}")
             try:
-                imported_cog = importlib.import_module(f"project_template.cogs.{_cog_mod}")
-                _cogs_list.append(getattr(imported_cog, _snake_to_camel_case(_cog_mod)))
+                imported_cog = importlib.import_module(_cog_mod.replace(os.path.sep, "."))
+                cog_class = os.path.basename(_cog_mod)
+                _cogs_list.append(getattr(imported_cog, _snake_to_camel_case(cog_class)))
                 log.info(f"Loaded cog {_cog_mod}")
             except ModuleNotFoundError:
                 log.exception(f"cog {_cog_mod} not found!")
+                raise
+            except AttributeError:
+                log.exception(
+                    f"project_template.cogs.{_cog_mod} does not have a class called "
+                    f"{_snake_to_camel_case(_cog_mod)}. The class inside of the {_cog_mod} file "
+                    f"MUST be the camel case version of the file name!"
+                )
                 raise
         return cogs_list
 
@@ -80,37 +88,45 @@ def gather_cogs():
 
     if cogs_explicit_exclude != "":
         cogs_to_exclude = set(cogs_explicit_exclude.split(","))
+        cogs_to_exclude = set(cogs_to_exclude.strip() for cogs_to_exclude in cogs_to_exclude)
 
     if cogs_explicit_include != "":
         log.info("Loading cogs off of include list")
         for cog_mod in cogs_explicit_include.split(","):
+            cog_mod = cog_mod.strip()
             cogs_list = _load_cog(cogs_list, cog_mod, cogs_to_exclude)
 
     else:
         log.info("Loading cogs dynamically from directory")
 
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        cogs_dir = f"{current_dir}/cogs"
-        cogs_mods = os.listdir(cogs_dir)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        cogs_dir = os.path.join(current_dir, "cogs")
+        cog_dirs = os.walk(cogs_dir)
 
-        log.debug(f"Dir loading cogs from {cogs_dir}")
+        for root, dir_names, file_names in cog_dirs:
+            for file_name in file_names:
+                cog_mod = os.path.join(root, file_name)
+                cog_mod = os.path.relpath(cog_mod, parent_dir)
 
-        for cog_mod in cogs_mods:
-            log.info(f"Starting to load cog {cog_mod}")
-            if "__" in cog_mod:
-                log.debug(f"file {cog_mod} not being loaded because it includes __")
-                continue
-
-            cog_mod = cog_mod.strip(".py")
-            cogs_list = _load_cog(cogs_list, cog_mod, cogs_to_exclude)
+                log.info(f"Starting to load cog {cog_mod}")
+                if "__" in cog_mod:
+                    log.debug(f"file {cog_mod} not being loaded because it includes __")
+                    continue
+                cog_mod = cog_mod.replace(".py", "")
+                cogs_list = _load_cog(cogs_list, cog_mod, cogs_to_exclude)
 
     return cogs_list
 
 
-if __name__ == "__main__":
+def main():
     log.info("Running as main")
     for cog in gather_cogs():
         bot.add_cog(cog(bot))
 
     log.info("About to run bot")
     bot.run(config.DISCORD_TOKEN)
+
+
+if __name__ == "__main__":
+    main()

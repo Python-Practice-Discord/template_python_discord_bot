@@ -15,6 +15,4 @@ async def accepted_tos(session, ctx: Context) -> bool:
     # TODO check TOS version
     # TODO maybe have some things work for some TOS versions and not others?
 
-    if len(user_tos) >= 1:
-        return True
-    return False
+    return len(user_tos) >= 1

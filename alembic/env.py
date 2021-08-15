@@ -28,10 +28,11 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-def _get_url():
-    return os.environ.get(
-        "POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test"
-    ).replace("://", "+psycopg2://")
+def _get_url() -> str:
+    url = os.environ.get("POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test")
+    if "psycopg2" in url:
+        return url
+    return url.replace("://", "+psycopg2://")
 
 
 def run_migrations_offline():
