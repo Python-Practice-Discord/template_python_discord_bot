@@ -18,7 +18,7 @@ run: _base
 interactive: _base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.interactive.yaml run --rm replaceme
 
-test: _base
+test: initialize_pg _base
 	docker-compose --env-file $(env_file_name) -f docker-compose.yaml -f docker-compose.test.yaml run --rm replaceme
 
 # Just starts the postgres DB.
@@ -49,7 +49,7 @@ remove_all_docker_data: kill_all_containers
 ### Commands starting with _ are not to be used in the CLI, but used in other make commands
 
 _build:
-	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID) -q
+	docker-compose --env-file $(env_file_name) build --build-arg USER_UID=$(UID)
 
 _down:
 	docker-compose --env-file $(env_file_name) down -v --remove-orphans

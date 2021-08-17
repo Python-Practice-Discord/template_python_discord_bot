@@ -26,7 +26,7 @@ environment run inside of Docker containers (orchestrated by docker-compose and 
 Run the following steps to get your local python env set up and enable pre-commit.
 
 * `curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -`
-* `poetry install --no-root`
+* `poetry install`
 * `poetry shell`
 * `pre-commit install`
 

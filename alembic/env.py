@@ -1,10 +1,11 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 from sqlalchemy import create_engine
-from src.project_template.config import POSTGRES_DATABASE_URL
+
 from src.project_template.schema import Base
 
 
@@ -27,8 +28,11 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-def _get_url():
-    return POSTGRES_DATABASE_URL.replace("://", "+psycopg2://")
+def _get_url() -> str:
+    url = os.environ.get("POSTGRES_DATABASE_URL_ENV", "postgresql://test:test@postgres/test")
+    if "psycopg2" in url:
+        return url
+    return url.replace("://", "+psycopg2://")
 
 
 def run_migrations_offline():
@@ -49,6 +53,8 @@ def run_migrations_offline():
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+        compare_server_default=True,
     )
 
     with context.begin_transaction():
@@ -65,7 +71,12 @@ def run_migrations_online():
     connectable = create_engine(_get_url())
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+        )
 
         with context.begin_transaction():
             context.run_migrations()
