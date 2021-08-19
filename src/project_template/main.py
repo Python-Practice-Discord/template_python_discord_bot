@@ -12,10 +12,6 @@ from project_template.utils.logger import log
 bot = commands.Bot(command_prefix=config.DISCORD_BOT_COMMAND_PREFIX)
 
 
-# TODO add more tests
-# TODO clean up utils
-
-
 @bot.event
 async def on_ready():
     log.info("Main on ready start")

@@ -12,7 +12,5 @@ async def accepted_tos(session, ctx: Context) -> bool:
         .join(schema.User, schema.User.id == schema.UserPrivacyTOS.user_id)
         .filter(schema.User.id == ctx.author.id)
     ).all()
-    # TODO check TOS version
-    # TODO maybe have some things work for some TOS versions and not others?
 
     return len(user_tos) >= 1

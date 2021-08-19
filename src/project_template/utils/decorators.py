@@ -80,8 +80,6 @@ def TOS(min_tos_version: Optional[str] = None):
     from project_template.utils.database import get_user_tos_version
 
     def _decorator(func):
-        # TODO add failure state if a bot user somehow calls a command/message
-
         @functools.wraps(func)
         async def wrapper_events(*args, **kwargs):
             if min_tos_version is not None:
@@ -119,7 +117,3 @@ def TOS(min_tos_version: Optional[str] = None):
         return wrapper_events
 
     return _decorator
-
-
-# TODO make decorator that checks if the channel is a bot channel
-# TODO make a decorator that returns errors as a message to a specific debug channel

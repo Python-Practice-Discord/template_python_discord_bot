@@ -20,7 +20,6 @@ class PrivacyTermsOfService(Base):
     __tablename__ = "privacy_terms_of_service"
     version = Column(String, primary_key=True, unique=True)
     content = Column(String, nullable=False)
-    # TODO created_at
     hash = Column(String, nullable=False)
 
 

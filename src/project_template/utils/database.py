@@ -88,8 +88,6 @@ async def put_bot_tos_message(session: AsyncSession, bot, message_name: str) -> 
         .scalars()
         .one_or_none()
     )
-    # TODO do we want this to fail if something is changed but the version is not bumped?
-    # TODO if a version is changed ALL USER DATA WILL BE DELETED! Do we want this?
     if tos_db_hash is None or hash_ != tos_db_hash:
         await put_tos_into_db(session, tos, version, hash_)
 

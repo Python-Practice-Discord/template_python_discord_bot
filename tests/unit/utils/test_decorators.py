@@ -11,7 +11,7 @@ from project_template.utils.decorators import Session
 async def add_user_and_confirm(session, clear_session: bool = True):
     new_user = {
         "discord_id": "test_id",
-        "created_at": datetime.utcnow(),  # TODO use arrow here
+        "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
     }
     user = User(**new_user)  # type: ignore
