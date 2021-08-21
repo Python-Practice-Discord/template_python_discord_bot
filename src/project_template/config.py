@@ -45,7 +45,7 @@ def _get_discord_roles(role_name: str) -> Set[Union[str, int]]:
     inherit_string = "*"
     roles = set()
     for role in config_data["discord.roles"][role_name].split(","):
-        if inherit_string in role:
+        if role.startswith(inherit_string):
             roles.update(_get_discord_roles(role.replace(inherit_string, "")))
             continue
 
