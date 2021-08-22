@@ -21,6 +21,7 @@ class PrivacyTermsOfService(Base):
     version = Column(String, primary_key=True, unique=True)
     content = Column(String, nullable=False)
     hash = Column(String, nullable=False)
+    # created_at = Column(DateTime, nullable=False)
 
 
 class UserPrivacyTOS(Base):

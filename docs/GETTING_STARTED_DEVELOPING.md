@@ -6,6 +6,7 @@ need to be using WSL/WSL2 as many commands are not supported by the regular Wind
 There is a Makefile in the root of this project. It contains most of the commands you will need.
 These include
 
+* `make run` which will run the project as intended.
 * `make interactive` which will drop you into a shell inside the projects' docker environment.
 * `make check` which will run a set of formatting and static analysis tools.
 * `make test` which will run all of our tests inside the projects' docker environment.

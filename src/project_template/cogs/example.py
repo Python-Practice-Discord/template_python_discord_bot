@@ -2,6 +2,7 @@ import arrow
 from arrow import ParserError
 from discord.ext import commands
 
+from project_template import config
 from project_template.utils.decorators import TOS
 from project_template.utils.logger import log
 
@@ -18,6 +19,7 @@ class Example(commands.Cog):
         return timezone.strip().upper()
 
     @commands.command(name="current_time")
+    @commands.has_any_role(*config.Roles.user.value)
     @TOS(min_tos_version="1.0")
     async def current_time(self, ctx: commands.Context, *, timezone: str):
         log.info(f"Getting current time in timezone: {timezone}")
