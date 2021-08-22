@@ -1,11 +1,14 @@
 import configparser
 import os
 
+import toml
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 
-VERSION = "0.1.0"
+_pyproject_toml = toml.load("pyproject.toml")
+
+VERSION = _pyproject_toml["tool"]["poetry"]["version"]
 SENTRY_URL = os.environ.get("SENTRY_URL_ENV", "fake")
 if SENTRY_URL.lower().strip() != "fake":
     import sentry_sdk
