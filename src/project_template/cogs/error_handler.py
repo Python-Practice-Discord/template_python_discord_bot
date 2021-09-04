@@ -13,7 +13,7 @@ class ErrorHandler(commands.Cog):
 
         log.error(f"The command {ctx.command} raised and exception: {errorName}")
         channel: discord.TextChannel = discord.utils.get(
-            ctx.guild.channels, id=config.DISCORD_ERRORS_CHANNEL_ID
+            ctx.guild.channels, id=config.DISCORD_ERROR_CHANNEL_ID
         )
 
         embed = discord.Embed(title="An error has occured!", color=0xFF0000)
