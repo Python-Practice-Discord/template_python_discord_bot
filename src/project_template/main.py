@@ -29,7 +29,7 @@ async def on_ready():
     config.DISCORD_ERROR_CHANNEL_ID = discord.utils.get(
         bot.get_all_channels(), name=config.config_data["discord"]["error_channel_name"]
     ).id
-    log.debug(f"Set DISCORD_BOT_CHANNEL_ID to {config.DISCORD_BOT_CHANNEL_ID}")
+    log.debug(f"Set DISCORD_ERROR_CHANNEL_ID to {config.DISCORD_BOT_CHANNEL_ID}")
 
     message = f"""
 {config.BOT_NAME} is starting. Version {config.VERSION}
