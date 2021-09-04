@@ -4,6 +4,7 @@ from discord.ext import commands
 from project_template import config
 from project_template.utils.logger import log
 
+
 class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
