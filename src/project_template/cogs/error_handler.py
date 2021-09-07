@@ -15,6 +15,7 @@ def _formatTraceback(tbdat):
 
     return out
 
+
 class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
