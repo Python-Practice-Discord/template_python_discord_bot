@@ -40,6 +40,7 @@ DISCORD_TOKEN = os.environ["DISCORD_TOKEN_ENV"]
 DISCORD_BOT_COMMAND_PREFIX = config_data["discord"]["bot_command_prefix"]
 DISCORD_TOS_CHANNEL_ID: str = ""  # This is set in main.py
 DISCORD_BOT_CHANNEL_ID: str = ""  # This is set in main.py
+DISCORD_ERROR_CHANNEL_ID: str = ""  # This is set in main.py
 COGS_EXPLICIT_INCLUDE = config_data["cogs"]["explicit_include"]
 COGS_EXPLICIT_EXCLUDE = config_data["cogs"]["explicit_exclude"]
 
